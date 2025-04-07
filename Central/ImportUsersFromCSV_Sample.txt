@@ -1,0 +1,5 @@
+# A test sample file for using with ImportUsersFromCSV.ps1 file
+
+name,firstName,lastName,email,exchangeLogin
+User1,User,One,user1@one.com,user1
+User2,User,Two,user2@two.com,user2
