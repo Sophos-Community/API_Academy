@@ -1,0 +1,17 @@
+# A sample file for use with ImportExclusions.ps1  
+
+value,type,scanMode,comment
+*.vhd,path,onDemandAndOnAccess,Virtual Hard Disk file
+*.vhdx,path,onDemandAndOnAccess,Virtual Hard Disk v2 file
+*.avhd,path,onDemandAndOnAccess,Virtual Hard Disk snapshot file
+*.avhdx,path,onDemandAndOnAccess,Virtual Hard Disk v2 snapshot file
+*.vhds,path,onDemandAndOnAccess,VHD Set file
+%ProgramData%\Microsoft\Windows\Hyper-V\,path,onDemandAndOnAccess,The default virtual machine configuration directory
+%userprofile%\Public\Documents\Hyper-V\Virtual Hard Disks\,path,onDemandAndOnAccess,The default virtual machine virtual hard disk files directory
+%programdata%\Microsoft\Windows\Hyper-V\Snapshots\,path,onDemandAndOnAccess,The default snapshot files directory
+C:\ClusterStorage\,path,onDemandAndOnAccess,The default Cluster Shared Volumes path
+%windir%\systen32\Vmms.exe,process,onAccess,Hyper-V VMMS Process
+%windir%\systen32\Vmwp.exe,process,onAccess,Hyper-V VMWP Process
+%windir%\systen32\Vmsp.exe,process,onAccess,Hyper-V VMSP Process 
+%windir%\systen32\Vmcompute.exe,process,onAccess,Hyper-V VMComputer Process
+www.sophos.com,web,onAccess,Example Website
