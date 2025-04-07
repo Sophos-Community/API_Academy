@@ -1,0 +1,175 @@
+/* Original Post: https://community.sophos.com/sophos-central/f/recommended-reads/146483/building-multi-tenant-dashboards-with-sophos-central-api-s---part-1-detections */
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { box-sizing: border-box; }
+body { font-family: Arial; margin: 0; }
+.header { padding: 10px; text-align: center; background: #0000FF; color: white; }
+h2 { margin: 0px; padding: 10px; background: #FFFFFF;}
+h2.center { text-align: center; }
+
+/* Flex Container */
+.container { display: flex; background-color: DodgerBlue; }
+.container-l { flex: 20%; flex-basis: 250px; background-color: #f1f1f1; padding: 10px; }
+.container-r { flex: 80%; background-color: #f1f1f1; padding: 10px; }
+
+/* Summary Container */
+.summary { display: flex; flex-wrap: wrap; justify-content: center; text-align: center; background-color: white; padding 20px; }
+#sumCri { border-radius: 10px; background: #d63d00; margin: 10px; padding: 16px; width: 200px; height: 80px; text-align: center; color: white;}
+#sumHig { border-radius: 10px; background: #ec6500; margin: 10px; padding: 16px; width: 200px; height: 80px; text-align: center;}
+#sumMed { border-radius: 10px; background: #ff8f00; margin: 10px; padding: 16px; width: 200px; height: 80px; text-align: center;}
+#sumLow { border-radius: 10px; background: #696a6b; margin: 10px; padding: 16px; width: 200px; height: 80px; text-align: center; color: white;}
+#sumInf { border-radius: 10px; background: #dadce0; margin: 10px; padding: 16px; width: 200px; height: 80px; text-align: center;}
+#sumTot { border-radius: 10px; background: #F0F2F4; margin: 10px; padding: 16px; width: 200px; height: 80px; text-align: center;}
+#sumSep { border-radius: 10px; width: 200px; height: 10px; text-align: center;}
+#sumVal { font-size: 25px; font-weight: bold; }
+
+/* Details Container */
+.details { background-color: white; }
+table { border-collapse: collapse; width: 100%; }
+th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+th.number, td.number { width: 7%; text-align: right; }
+
+/* detection colors */
+.critical { background: #d63d0080 !important; }
+.high { background: #ec650080; }
+.medium { background: #ff8f0080; }
+.low { background: #696a6b80; }
+.info { background: #dadce080; }
+.none { background: #FFFFFF; color: #b3afaf; }
+
+/* Footer */
+.footer { padding: 3px; text-align: center; background: #ddd; }
+
+/* Automatically adjust for small screens */
+@media screen and (max-width: 900px) { .container { flex-direction: column; }}
+
+
+</style>
+</head>
+<s#c#r#i#p#t src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></s#c#r#i#p#t>
+<s#c#r#i#p#t src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></s#c#r#i#p#t>
+<body>
+<s#c#r#i#p#t>
+function updatePage(dataTable) {
+    var tbody = '<tr><th class="name">Tenant Name</th><th class="number">Critical</th><th class="number">High</th><th class="number">Medium</th><th class="number">Low</th><th class="number">Info</th><th class="number">Total</th></tr>';
+	var sumT = sumC = sumH = sumM = sumL = sumI = 0;
+
+	// build table and totals
+	for (var i = 0; i < dataTable.length; i++) {
+		var row = "";
+		if(dataTable[i].hasOwnProperty('Name')) {
+
+			if(dataTable[i].Detections_Critical !== 0) {
+				row = '<tr class="critical">';
+			} else if(dataTable[i].Detections_High !== 0) {
+				row = '<tr class="high">';
+			} else if(dataTable[i].Detections_Medium !== 0) {
+				row = '<tr class="medium">';
+			} else if(dataTable[i].Detections_Low !== 0) {
+				row = '<tr class="low">';
+			} else if(dataTable[i].Detections_Info !== 0) {
+				row = '<tr class="info">';
+			} else {
+				row = '<tr class="none">';
+			}
+
+			row += '<td class="name">' + dataTable[i].Name + "</td>";
+			row += '<td class="number numC">' + dataTable[i].Detections_Critical + "</td>";
+			row += '<td class="number numH">' + dataTable[i].Detections_High + "</td>";
+			row += '<td class="number numM">' + dataTable[i].Detections_Medium + "</td>";
+			row += '<td class="number numL">' + dataTable[i].Detections_Low + "</td>";
+			row += '<td class="number numI">' + dataTable[i].Detections_Info + "</td>";
+			row += '<td class="number">' + dataTable[i].Detections_Total + "</td>";
+			tbody += row + "</tr>";
+			
+			sumT += parseInt(dataTable[i].Detections_Total);
+			sumC += parseInt(dataTable[i].Detections_Critical);
+			sumH += parseInt(dataTable[i].Detections_High);
+			sumM += parseInt(dataTable[i].Detections_Medium);
+			sumL += parseInt(dataTable[i].Detections_Low);
+			sumI += parseInt(dataTable[i].Detections_Info);
+		}
+	}
+
+	// update webpage
+	$("output").html(
+	  '<table class="table"><tbody>' + tbody + "</tbody></table>"
+	);
+	
+	document.getElementById("sumCVal").innerHTML=sumC;
+	document.getElementById("sumHVal").innerHTML=sumH;
+	document.getElementById("sumMVal").innerHTML=sumM;
+	document.getElementById("sumLVal").innerHTML=sumL;
+	document.getElementById("sumIVal").innerHTML=sumI;
+	document.getElementById("sumTVal").innerHTML=sumT;
+}
+
+function parseDetections(url, callBack) {
+    Papa.parse(url+"?_="+ (new Date).getTime(), {
+        download: true,
+        dynamicTyping: true,
+	    header: true,
+        complete: function(results) {
+		    // console.log(results);
+            callBack(results.data);
+        }
+    });
+}
+
+function updateDate(lastUpdated) {
+	const formattedDate = lastUpdated.toLocaleString('en-US', { timeZoneName: 'short' });
+	document.getElementById("lastUpdated").innerHTML="TENANT DETAILS from " + formattedDate;
+}
+
+function fetchLastModified(url, callback) {
+    fetch(url, {method: "HEAD"})
+        .then(r => {callback(new Date(r.headers.get('Last-Modified')))});
+}
+
+fetchLastModified("detections.csv", updateDate);
+parseDetections("detections.csv", updatePage);
+
+setInterval(function(){
+	parseDetections("detections.csv", updatePage);
+	fetchLastModified("detections.csv", updateDate);
+}, 30000); //refresh every 30 seconds
+	
+</s#c#r#i#p#t>
+
+
+<!-- Header -->
+<div class="header">
+  <h1>Multi-Tenant Detections Dashboard</h1>
+</div>
+
+<!-- The flexible grid (content) -->
+<div class="container">
+	<div class="container-l">
+		<h2 class="center">SUMMARY</h2>
+		<div class="summary">
+			<div id="sumCri"><div id="sumVal"><div id="sumCVal">0</div></div>Critical</div><br>
+			<div id="sumHig"><div id="sumVal"><div id="sumHVal">0</div></div>High</div><br>
+			<div id="sumMed"><div id="sumVal"><div id="sumMVal">0</div></div>Medium</div><br><br>
+			<div id="sumLow"><div id="sumVal"><div id="sumLVal">0</div></div>Low</div><br>
+			<div id="sumInf"><div id="sumVal"><div id="sumIVal">0</div></div>Info</div><br>
+			<div id="sumTot"><div id="sumVal"><div id="sumTVal">0</div></div>Total</div><br>
+		</div>
+	</div>
+	<div class="container-r">
+		<h2><div id="lastUpdated">TENANT DETAILS</div></h2>
+		<div class="details">
+			<output>make sure that detections.csv is stored in the same directory as this page...</output>
+		</div>
+	</div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <h4>Powered by the Detections API of Sophos Central, for more info see: <a href="https://developer.sophos.com/detections" target="_blank">developer.sophos.com/detections</a></h4>
+</div>
+
+</body>
+</html>
