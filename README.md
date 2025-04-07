@@ -11,3 +11,5 @@ This repository hosts API snippets from the following Sophos Community posts:
 * https://community.sophos.com/sophos-central/f/recommended-reads/140798/sophos-central-email-quarantine-api-sample-script
 * https://community.sophos.com/sophos-central/f/recommended-reads/136267/fast-api-scripting-sophos-central-api-template-in-powershell
 * https://community.sophos.com/intercept-x-endpoint/f/recommended-reads/135195/device-migration-api-postman-collection
+
+The Sophos DACH team has posted a YouTube series on the API capabilities, and it can be found here: https://www.youtube.com/playlist?list=PLam30hlGlohyIXUWOnSx0-yvah17ltjFg
