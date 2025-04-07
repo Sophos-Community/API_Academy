@@ -1,0 +1,202 @@
+/* Original Post: https://community.sophos.com/sophos-central/f/recommended-reads/146643/building-multi-tenant-dashboards-with-sophos-central-api-s---part-3-cases */
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { box-sizing: border-box; }
+body { font-family: Arial; margin: 0; }
+.header { padding: 10px; text-align: center; background: #0000FF; color: white; }
+h2 { margin: 0px; padding: 10px; background: #FFFFFF;}
+h2.center { text-align: center; }
+
+/* Flex Container */
+.container { display: flex; background-color: DodgerBlue; }
+.container-l { flex: 20%; flex-basis: 250px; background-color: #f1f1f1; padding: 10px; }
+.container-r { flex: 80%; background-color: #f1f1f1; padding: 10px; }
+
+/* Summary Container */
+.summary { display: flex; flex-wrap: wrap; justify-content: center; text-align: center; background-color: white; padding 20px; }
+#sumCri { border-radius: 10px; background: #d63d00; margin: 10px; padding: 16px; width: 200px; height: 75px; text-align: center; color: white;}
+#sumHig { border-radius: 10px; background: #ec6500; margin: 10px; padding: 16px; width: 200px; height: 75px; text-align: center;}
+#sumMed { border-radius: 10px; background: #ff8f00; margin: 10px; padding: 16px; width: 200px; height: 75px; text-align: center;}
+#sumLow { border-radius: 10px; background: #696a6b; margin: 10px; padding: 16px; width: 200px; height: 75px; text-align: center; color: white;}
+#sumInf { border-radius: 10px; background: #dadce0; margin: 10px; padding: 16px; width: 200px; height: 75px; text-align: center;}
+#sumNa  { border-radius: 10px; background: #066fd8; margin: 10px; padding: 16px; width: 200px; height: 75px; text-align: center; color: white;}
+#sumClo { border-radius: 10px; background: #57ee9bfb; margin: 10px; padding: 16px; width: 200px; height: 75px; text-align: center;}
+#sumTot { border-radius: 10px; background: #F0F2F4; margin: 10px; padding: 16px; width: 200px; height: 75px; text-align: center;}
+#sumSep { border-radius: 10px; width: 200px; height: 10px; text-align: center;}
+#sumVal { font-size: 25px; font-weight: bold; }
+
+/* Details Container */
+.details { background-color: white; }
+table { border-collapse: collapse; width: 100%; }
+th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd;}
+th.top { border-bottom: 0px; }
+th.number, td.number { width: 7%; text-align: right; }
+th.open { width: 7%; text-align: center; }
+tr.aktvive { background: #FFFFFF; color: #000000; }
+tr.inaktive { background: #FFFFFF; color: #b3afaf; }
+
+/* severity colors */
+.critical { background: #d63d0080 !important; color: #000000;}
+.high { background: #ec650080; color: #000000;}
+.medium { background: #ff8f0080; color: #000000;}
+.low { background: #696a6b80; color: #000000;}
+.info { background: #dadce080; color: #000000;}
+.new { background: #577bc480; color: #000000;}
+
+/* Footer */
+.footer { padding: 3px; text-align: center; background: #ddd; }
+
+/* Automatically adjust for small screens */
+@media screen and (max-width: 900px) { .container { flex-direction: column; }}
+
+
+</style>
+</head>
+<s#c#r#i#p#t src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></s#c#r#i#p#t>
+<s#c#r#i#p#t src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></s#c#r#i#p#t>
+<body>
+<s#c#r#i#p#t>
+function updatePage(dataTable) {
+    var tbody = '<tr><th class="name top"></th><th colspan="6" class="open top">Open</th><th class="number top"></th></tr>';
+	tbody += '<tr><th class="name">Tenant Name</th><th class="number">Critical</th><th class="number">High</th><th class="number">Medium</th><th class="number">Low</th><th class="number">Info</th><th class="number">New</th><th class="number">Closed</th></tr>';
+	var sumT = sumC = sumH = sumM = sumL = sumI = sumN = sumX = 0;
+
+	// build table and totals
+	for (var i = 0; i < dataTable.length; i++) {
+
+		if(dataTable[i].hasOwnProperty('Name')) {
+			if(dataTable[i].Cases_OCR !== 0) {
+				var row = '<tr class="aktive">';
+				var sev = " critical";
+			} else if(dataTable[i].Cases_OHI !== 0) {
+				var row = '<tr class="aktive">';
+				var	sev = " high";
+			} else if(dataTable[i].Cases_OME !== 0) {
+				var row = '<tr class="aktive">';
+				var	sev = " medium";
+			} else if(dataTable[i].Cases_OLO !== 0) {
+				var row = '<tr class="aktive">';
+				var	sev = " low";
+			} else if(dataTable[i].Cases_OIN !== 0) {
+				var row = '<tr class="aktive">';
+				var	sev = " info";
+			} else if(dataTable[i].Cases_ONA !== 0) {
+				var row = '<tr class="aktive">';
+				var	sev = "";
+			} else if(dataTable[i].Cases_CLO !== 0) {
+				var row = '<tr class="aktive">';
+				var	sev = "";
+			} else {
+				var row = '<tr class="inaktive">';
+				var	sev = "";
+			}
+
+			row += '<td class="name' + sev +'">' + dataTable[i].Name + "</td>";
+			row += '<td class="number numC' + sev +'">' + dataTable[i].Cases_OCR + "</td>";
+			row += '<td class="number numH' + sev +'">' + dataTable[i].Cases_OHI + "</td>";
+			row += '<td class="number numM' + sev +'">' + dataTable[i].Cases_OME + "</td>";
+			row += '<td class="number numL' + sev +'">' + dataTable[i].Cases_OLO + "</td>";
+			row += '<td class="number numI' + sev +'">' + dataTable[i].Cases_OIN + "</td>";
+
+			if(dataTable[i].Cases_ONA !== 0) {
+				row += '<td class="number numN new">' + dataTable[i].Cases_ONA + "</td>";
+			} else {
+				row += '<td class="number numN">' + dataTable[i].Cases_ONA + "</td>";
+			}
+			
+			row += '<td class="number numX none">' + dataTable[i].Cases_CLO + "</td>";
+			tbody += row + "</tr>";
+			
+			sumT += parseInt(dataTable[i].Cases_TOT);
+			sumC += parseInt(dataTable[i].Cases_OCR);
+			sumH += parseInt(dataTable[i].Cases_OHI);
+			sumM += parseInt(dataTable[i].Cases_OME);
+			sumL += parseInt(dataTable[i].Cases_OLO);
+			sumI += parseInt(dataTable[i].Cases_OIN);
+			sumN += parseInt(dataTable[i].Cases_ONA);
+			sumX += parseInt(dataTable[i].Cases_CLO);
+		}
+	}
+
+	// update webpage
+	$("output").html(
+	  '<table class="table"><tbody>' + tbody + "</tbody></table>"
+	);
+	
+	document.getElementById("sumCVal").innerHTML=sumC;
+	document.getElementById("sumHVal").innerHTML=sumH;
+	document.getElementById("sumMVal").innerHTML=sumM;
+	document.getElementById("sumLVal").innerHTML=sumL;
+	document.getElementById("sumIVal").innerHTML=sumI;
+	document.getElementById("sumNVal").innerHTML=sumN;
+	document.getElementById("sumXVal").innerHTML=sumX;
+	document.getElementById("sumTVal").innerHTML=sumT;
+}
+
+function parseCases(url, callBack) {
+	var lastUpdated = null;
+	fetch(url, {method: "HEAD"}).then(r => {
+		if(r.status === 403) { return; };
+    	lastUpdated = r.headers.get('Last-Modified');
+		const formattedDate = lastUpdated.toLocaleString('en-US', { timeZoneName: 'short' });
+		document.getElementById("lastUpdated").innerHTML="TENANT DETAILS from " + formattedDate;
+
+		Papa.parse(url+"?_="+ (new Date).getTime(), {
+			download: true,
+			dynamicTyping: true,
+			header: true,
+			complete: function(results) {
+				// console.log(results);
+				callBack(results.data);
+			}
+		});
+	})
+}
+
+parseCases("cases.csv", updatePage);
+
+setInterval(function(){
+	parseCases("cases.csv", updatePage);
+}, 30000); //refresh every 30 seconds
+	
+</s#c#r#i#p#t>
+
+
+<!-- Header -->
+<div class="header">
+  <h1>Multi-Tenant Cases Dashboard</h1>
+</div>
+
+<!-- The flexible grid (content) -->
+<div class="container">
+	<div class="container-l">
+		<h2 class="center">SUMMARY</h2>
+		<div class="summary">
+			<div id="sumCri"><div id="sumVal"><div id="sumCVal">0</div></div>Critical</div><br>
+			<div id="sumHig"><div id="sumVal"><div id="sumHVal">0</div></div>High</div><br>
+			<div id="sumMed"><div id="sumVal"><div id="sumMVal">0</div></div>Medium</div><br><br>
+			<div id="sumLow"><div id="sumVal"><div id="sumLVal">0</div></div>Low</div><br>
+			<div id="sumInf"><div id="sumVal"><div id="sumIVal">0</div></div>Info</div><br>
+			<div id="sumNa"><div id="sumVal"><div id="sumNVal">0</div></div>New</div><br>
+			<div id="sumClo"><div id="sumVal"><div id="sumXVal">0</div></div>Closed</div><br>
+			<div id="sumTot"><div id="sumVal"><div id="sumTVal">0</div></div>Total</div><br>
+		</div>
+	</div>
+	<div class="container-r">
+		<h2><div id="lastUpdated">TENANT DETAILS</div></h2>
+		<div class="details">
+			<output>make sure that detections.csv is stored in the same directory as this page...</output>
+		</div>
+	</div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <h4>Powered by the Cases API of Sophos Central, for more info see: <a href="https://developer.sophos.com/cases" target="_blank">developer.sophos.com/cases</a></h4>
+</div>
+
+</body>
+</html>
