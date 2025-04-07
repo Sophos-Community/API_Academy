@@ -1,0 +1,8 @@
+#This is a sample file for use with the ImportWebsiteTags.ps1 snippet
+
+url,categoryId,tags,comment
+www.abcd.de,,Block,
+www.bcda.de,,Allow,
+www.cdab.de,,Warn,
+www.dabc.de,35,,
+translate.google.com,,Allow,Blocked by default as Proxy/Translator
