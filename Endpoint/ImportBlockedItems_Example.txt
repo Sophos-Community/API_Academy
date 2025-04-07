@@ -1,0 +1,5 @@
+#This is a sample file used by the ImportBlockedItems.ps1 snippet
+
+sha256,comment
+0f66c6e095a01f9709be73cde3ccbb43a2a30af57e15d6f099278a13d31b932e,Unknow
+f5d39e20d406c846041343fe8fbd30069fd50886d7d3d0cce07c44008925d434,Megacortex
