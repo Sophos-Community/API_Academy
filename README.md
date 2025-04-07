@@ -1,6 +1,12 @@
 # Central-API-Academy
 Hosts sample scripts shared from past API academies hosted by Sophos Community 
 
+Primary resources can be found here:
+
+* https://developer.sophos.com/apis
+* https://developer.sophos.com/whatsnew
+* https://developer.sophos.com/intro
+
 This repository hosts API snippets from the following Sophos Community posts:
 
 * https://community.sophos.com/sophos-central/f/recommended-reads/147429/sophos-central-api-academy-2024-sample-scripts
