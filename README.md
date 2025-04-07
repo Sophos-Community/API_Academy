@@ -2,6 +2,8 @@
 
 The code found here is provided "AS IS" and has no expectation of formal Sophos Support under our 24/7/365 technical engineers. For any assistance with these scripts, please find them in the corresponding blog post on the community site or post a discussion asking for help from the community users.
 
+If formal assistance is required, you may engage the Sophos Professional Services team for customiing your unique needs.
+
 ## Primary resources can be found here:
 
 * https://developer.sophos.com/apis
