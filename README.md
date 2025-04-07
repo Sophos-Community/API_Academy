@@ -1,5 +1,6 @@
 # Sophos Central API Snippets and Templates
 
+The code found here is provided "AS IS" and has no expectation of formal Sophos Support under our 24/7/365 technical engineers. For any assistance with these scripts, please find them in the corresponding blog post on the community site or post a discussion asking for assistance.
 
 ## Primary resources can be found here:
 
