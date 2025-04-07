@@ -1,0 +1,142 @@
+#Original Post: https://community.sophos.com/sophos-central/f/recommended-reads/146644/building-multi-tenant-dashboards-with-sophos-central-api-s---part-2-health-check
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { box-sizing: border-box; }
+body { font-family: Arial; margin: 0; }
+.header { padding: 10px; text-align: center; background: #0000FF; color: white; }
+h2 { margin: 0px; padding: 10px; background: #FFFFFF;}
+h2.center { text-align: center; }
+h3 { margin: 0px; }
+
+/* Flex Container */
+.container { display: flex; flex-wrap: wrap;   justify-content: center; background-color: #ffffff; }
+.container-h { width: 600px; height: 170px; background-color: #dddddd;; padding: 5px; margin: 0.5rem;}
+
+/* Details Container */
+.details { display: grid; grid-template-columns: 23% 36% 36%; gap: 10px; background-color: #ffffff; padding: 1px;  margin: 0px; }
+.tenant { padding: 10px; text-align: center; background: #dddddd; color: #000000; }
+
+/* Progress Circle */
+.circle_normal { grid-row: 1 / span 2; position: relative; width: 100px; height: 100px; margin: 0.5rem; border-radius: 50%; background: conic-gradient(#FFA500 var(--percentage, 0), #00FF00 0); overflow: hidden; }
+.circle_snooze { grid-row: 1 / span 2; position: relative; width: 100px; height: 100px; margin: 0.5rem; border-radius: 50%; background: conic-gradient(#a7a7a5 var(--percentage, 0), #00FF00 0); overflow: hidden; }
+.circle_inner { display: flex; justify-content: center; align-items: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 65px; height: 65px; background: #FFF; border-radius: 50%; font-size: 1.5em; font-weight: bold;; color: rgba(0, 0, 0, 0.75); }
+
+/* Progress Bar */
+.progress_boxt {height: 35px; margin-top: 10px}
+.progress_boxb {height: 35px; }
+.progress_normal { height: 10px; border-radius: 10px; background: linear-gradient(to left, #FFA500 var(--percentage, 0), #00FF00 0); }
+.progress_snooze { height: 10px; border-radius: 10px; background: linear-gradient(to left, #a7a7a5 var(--percentage, 0), #00FF00 0); }
+
+/* Footer */
+.footer { padding: 3px; text-align: center; background: #ddd; }
+
+/* Automatically adjust for small screens */
+@media screen and (max-width: 900px) { .container { flex-direction: column; }}
+
+
+</style>
+</head>
+<s#c#r#i#p#t src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></s#c#r#i#p#t>
+<s#c#r#i#p#t src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></s#c#r#i#p#t>
+<body>
+<s#c#r#i#p#t>
+function updatePage(dataTable) {
+
+	health = '<div class="container">'
+
+	// build health widget for each customer
+	for (var i = 0; i < dataTable.length; i++) {
+		var widget = '';
+		if(dataTable[i].hasOwnProperty('Name')) {
+
+			widget += '<div class="container-h"><div class="tenant"><h3>' + dataTable[i].Name + '</h3></div><div class="details">';
+			
+			if(dataTable[i].HOvSn == "False") {					
+				widget += '<div class="circle_normal" style="--percentage:' + (100 - dataTable[i].HOvSc) + '%;"><div class="circle_inner">' + dataTable[i].HOvSc + '</div></div>';
+			} else {
+				widget += '<div class="circle_snooze" style="--percentage:' + (100 - dataTable[i].HOvSc) + '%;"><div class="circle_inner"> ' + dataTable[i].HOvSc + '</div></div>';
+			}
+			
+			if(dataTable[i].HPrSn == "False") {					
+				widget += '<div class="progress_boxt">Protection Installed<br><div class="progress_normal" style="--percentage:' + (100 - dataTable[i].HPrSc) + '%;"></div></div>';
+			} else {
+				widget += '<div class="progress_boxt">Protection Installed<br><div class="progress_snooze" style="--percentage:' + (100 - dataTable[i].HPrSc) + '%;"></div></div>';
+			}
+
+						
+			if(dataTable[i].HTaSn == "False") {					
+				widget += '<div class="progress_boxt">Tamper Protection<br><div class="progress_normal" style="--percentage:' + (100 - dataTable[i].HTaSc) + '%;"></div></div>';
+			} else {
+				widget += '<div class="progress_boxt">Tamper Protection<br><div class="progress_snooze" style="--percentage:' + (100 - dataTable[i].HTaSc) + '%;"></div></div>';
+			}	
+
+			if(dataTable[i].HPoSn == "False") {					
+				widget += '<div class="progress_boxb">Policies<br><div class="progress_normal" style="--percentage:' + (100 - dataTable[i].HPoSc) + '%;"></div></div>';
+			} else {
+				widget += '<div class="progress_boxb">Policies<br><div class="progress_snooze" style="--percentage:' + (100 - dataTable[i].HPoSc) + '%;"></div></div>';
+			}	
+
+			if(dataTable[i].HExSn == "False") {					
+				widget += '<div class="progress_boxb">Exclusions<br><div class="progress_normal" style="--percentage:' + (100 - dataTable[i].HExSc) + '%;"></div></div>';
+			} else {
+				widget += '<div class="progress_boxb">Exclusions<br><div class="progress_snooze" style="--percentage:' + (100 - dataTable[i].HExSc) + '%;"></div></div>';
+			}	
+
+			widget += '</div></div>'
+			health += widget;
+		}
+	}
+	health += '</div>'
+
+	// update webpage
+	$("output").html(health);
+}
+
+function parseHealth(url, callBack) {
+	var lastUpdated = null;
+	fetch(url, {method: "HEAD"}).then(r => {
+		if(r.status === 403) { return; };
+    	lastUpdated = r.headers.get('Last-Modified');
+		const formattedDate = lastUpdated.toLocaleString('en-US', { timeZoneName: 'short' });
+		document.getElementById("lastUpdated").innerHTML="TENANT DETAILS from " + formattedDate;
+
+		Papa.parse(url+"?_="+ (new Date).getTime(), {
+			download: true,
+			dynamicTyping: true,
+			header: true,
+			complete: function(results) {
+				// console.log(results);
+				callBack(results.data);
+			}
+		});
+	})
+}
+
+parseHealth("healthscores.csv", updatePage);
+
+setInterval(function(){
+	parseHealth("healthscores.csv", updatePage);
+}, 1800000); //refresh every 30 minutes
+	
+</s#c#r#i#p#t>
+
+<!-- Header -->
+<div class="header">
+  <h1>Multi-Tenant Health Dashboard</h1>
+</div>
+<h2><div id="lastUpdated">TENANT DETAILS</div></h2>
+
+<!-- The flexible grid (content) -->
+<output>make sure that healthscores.csv is stored in the same directory as this page...</output>
+
+
+<!-- Footer -->
+<div class="footer">
+  <h4>Powered by the Account Health Check API of Sophos Central, for more info see: <a href="https://developer.sophos.com/account-health-check" target="_blank">developer.sophos.com/account-health-check</a></h4>
+</div>
+
+</body>
+</html>
